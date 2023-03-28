@@ -1,23 +1,38 @@
-import { StyleSheet, Text, Switch, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  Switch,
+  View,
+  SafeAreaView,
+  TextInput,
+  Button,
+} from "react-native";
 import { useEffect, useState } from "react";
 import init from "react_native_mqtt";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const ControlDashboard = (c) => {
-  const [van1, setVan1] = useState(null);
-  const toggleSwitch = () => {
-    publish(!van1);
-    setVan1((van1) => !van1);
-  };
+init({
+  size: 10000,
+  storageBackend: AsyncStorage,
+  defaultExpires: 1000 * 3600 * 24,
+  enableCache: true,
+  reconnect: true,
+  sync: {},
+});
 
-  init({
-    size: 10000,
-    storageBackend: AsyncStorage,
-    defaultExpires: 1000 * 3600 * 24,
-    enableCache: true,
-    reconnect: true,
-    sync: {},
-  });
+const client = new Paho.MQTT.Client(
+  "broker1.hcmut.org",
+  9001,
+  `python-mqtt-${parseInt(Math.random() * 100)}`
+);
+
+const ControlDashboard = () => {
+  const [van1, setVan1] = useState(false);
+  const [inputVan1, setInputVan1] = useState("");
+  const toggleSwitch = (topic) => {
+    publish(!van1, topic);
+    setVan1(!van1);
+  };
 
   function onConnect() {
     console.log("onConnect");
@@ -42,41 +57,52 @@ const ControlDashboard = (c) => {
     console.log("Connect Failed");
   }
 
-  const publish = (value) => {
+  const publish = (value, topic) => {
     if (value === true) value = 1;
     else value = 0;
     message = new Paho.MQTT.Message(JSON.stringify({ value: value }));
-    message.destinationName = "/bkiot/piquihac/van1";
+    message.destinationName = `/bkiot/piquihac/${topic}`;
     client.send(message);
   };
 
-  const client = new Paho.MQTT.Client(
-    "broker1.hcmut.org",
-    9001,
-    `python-mqtt-${parseInt(Math.random() * 100)}`
-  );
-
   client.onConnectionLost = onConnectionLost;
   client.onMessageArrived = onMessageArrived;
-  client.connect({
-    onSuccess: onConnect,
-    onFailure: onFail,
-    useSSL: false,
-    userName: "vatserver",
-    password: "vatserver123",
-  });
+
+  useEffect(() => {
+    client.connect({
+      onSuccess: onConnect,
+      onFailure: onFail,
+      useSSL: false,
+      userName: "vatserver",
+      password: "vatserver123",
+    });
+  }, []);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Dasboard</Text>
       <View style={styles.control}>
-        <Text style={styles.textControl}>Relay 1</Text>
+        <Text style={styles.textControl}>Van thùng phân 1</Text>
         <Switch
           style={styles.switch}
           trackColor={{ false: "#767577", true: "#6aa84f" }}
           thumbColor={van1 ? "green" : "#f4f3f4"}
-          onChange={toggleSwitch}
+          onChange={() => {
+            toggleSwitch("van1");
+          }}
           value={van1}
+        />
+        <TextInput
+          style={styles.input}
+          onChangeText={setInputVan1}
+          value={inputVan1}
+          placeholder="second"
+        />
+        <Button
+          style={styles.button}
+          title="Setting"
+          color="green"
+          onPress={() => Alert.alert("Simple Button pressed")}
         />
       </View>
     </View>
@@ -85,7 +111,7 @@ const ControlDashboard = (c) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 30,
+    marginTop: 20,
   },
   title: {
     textAlign: "center",
@@ -95,12 +121,25 @@ const styles = StyleSheet.create({
   },
   control: {
     flexDirection: "row",
+    alignItems: "center",
   },
   textControl: {
     verticalAlign: "middle",
     fontSize: 18,
   },
   switch: {},
+  input: {
+    height: 30,
+    width: 70,
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 3,
+    textAlign: "center",
+    marginRight: 10,
+  },
+  button: {
+    borderWidth: 10,
+  },
 });
 
 export default ControlDashboard;
