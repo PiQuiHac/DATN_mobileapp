@@ -10,6 +10,8 @@ import {
 import { useEffect, useState } from "react";
 import init from "react_native_mqtt";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import VanOngNuoc from "../components/VanOngNuoc";
+import VanThungPhan from "../components/VanThungPhan";
 
 init({
   size: 10000,
@@ -27,16 +29,35 @@ const client = new Paho.MQTT.Client(
 );
 
 const ControlDashboard = () => {
-  const [van1, setVan1] = useState(false);
-  const [inputVan1, setInputVan1] = useState("");
+  const [vanOngNuoc1, setVanOngNuoc1] = useState(false);
+  const [vanOngNuoc2, setVanOngNuoc2] = useState(false);
+  const [vanOngNuoc3, setVanOngNuoc3] = useState(false);
+  const [vanThungPhan1, setVanThungPhan1] = useState(false);
+  const [vanThungPhan2, setVanThungPhan2] = useState(false);
+  const [vanThungPhan3, setVanThungPhan3] = useState(false);
+  const [inputVanThungPhan1, setInputVanThungPhan1] = useState(0);
+  const [inputVanThungPhan2, setInputVanThungPhan2] = useState(0);
+  const [inputVanThungPhan3, setInputVanThungPhan3] = useState(0);
+
   const toggleSwitch = (topic) => {
-    publish(!van1, topic);
-    setVan1(!van1);
+    if (topic === "vanOngNuoc1") {
+      publish(!vanOngNuoc1, topic);
+      setVanOngNuoc1(!vanOngNuoc1);
+    } else if (topic === "vanOngNuoc2") {
+      publish(!vanOngNuoc2, topic);
+      setVanOngNuoc2(!vanOngNuoc2);
+    } else if (topic === "vanOngNuoc3") {
+      publish(!vanOngNuoc3, topic);
+      setVanOngNuoc3(!vanOngNuoc3);
+    }
   };
 
   function onConnect() {
     console.log("onConnect");
-    client.subscribe("/bkiot/piquihac/van1");
+    client.subscribe("/bkiot/piquihac/vanOngNuoc1");
+    client.subscribe("/bkiot/piquihac/vanOngNuoc2");
+    client.subscribe("/bkiot/piquihac/vanOngNuoc3");
+    client.subscribe("/bkiot/piquihac/vanThungPhanSub");
   }
 
   function onConnectionLost(responseObject) {
@@ -47,9 +68,21 @@ const ControlDashboard = () => {
 
   function onMessageArrived(message) {
     const payload = JSON.parse(message.payloadString).value;
-    if (message.destinationName === "/bkiot/piquihac/van1") {
-      if (payload === 1) setVan1(true);
-      else setVan1(false);
+    if (message.destinationName === "/bkiot/piquihac/vanOngNuocSub") {
+      if (payload.vanOngNuoc1 === 1) setVanOngNuoc1(true);
+      else if (payload.vanOngNuoc1 === 0) setVanOngNuoc1(false);
+      if (payload.vanOngNuoc2 === 1) setVanOngNuoc2(true);
+      else if (payload.vanOngNuoc2 === 0) setVanOngNuoc2(false);
+      if (payload.vanOngNuoc3 === 1) setVanOngNuoc3(true);
+      else if (payload.vanOngNuoc3 === 0) setVanOngNuoc3(false);
+    } else if (message.destinationName === "/bkiot/piquihac/vanThungPhanSub") {
+      console.log(payload);
+      if (payload.stateRelay1 === 1) setVanThungPhan1(true);
+      else if (payload.stateRelay1 === 0) setVanThungPhan1(false);
+      if (payload.stateRelay2 === 1) setVanThungPhan2(true);
+      else if (payload.stateRelay2 === 0) setVanThungPhan2(false);
+      if (payload.stateRelay3 === 1) setVanThungPhan3(true);
+      else if (payload.stateRelay3 === 0) setVanThungPhan3(false);
     }
   }
 
@@ -62,6 +95,22 @@ const ControlDashboard = () => {
     else value = 0;
     message = new Paho.MQTT.Message(JSON.stringify({ value: value }));
     message.destinationName = `/bkiot/piquihac/${topic}`;
+    client.send(message);
+  };
+
+  const publishInputThungPhan = () => {
+    const mess = {
+      value: {
+        stateRelay1: 0,
+        timeRelay1: Number(inputVanThungPhan1),
+        stateRelay2: 0,
+        timeRelay2: Number(inputVanThungPhan2),
+        stateRelay3: 0,
+        timeRelay3: Number(inputVanThungPhan3),
+      },
+    };
+    message = new Paho.MQTT.Message(JSON.stringify(mess));
+    message.destinationName = `/bkiot/piquihac/vanThungPhan`;
     client.send(message);
   };
 
@@ -81,28 +130,53 @@ const ControlDashboard = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Dasboard</Text>
-      <View style={styles.control}>
-        <Text style={styles.textControl}>Van thùng phân 1</Text>
-        <Switch
-          style={styles.switch}
-          trackColor={{ false: "#767577", true: "#6aa84f" }}
-          thumbColor={van1 ? "green" : "#f4f3f4"}
-          onChange={() => {
-            toggleSwitch("van1");
-          }}
-          value={van1}
-        />
-        <TextInput
-          style={styles.input}
-          onChangeText={setInputVan1}
-          value={inputVan1}
-          placeholder="second"
-        />
+      <VanThungPhan
+        name={"Van Thùng Phân 1"}
+        state={vanThungPhan1}
+        onChangeText={setInputVanThungPhan1}
+        value={inputVanThungPhan1}
+      />
+      <VanThungPhan
+        name={"Van Thùng Phân 2"}
+        state={vanThungPhan2}
+        onChangeText={setInputVanThungPhan2}
+        value={inputVanThungPhan2}
+      />
+      <VanThungPhan
+        name={"Van Thùng Phân 3"}
+        state={vanThungPhan3}
+        onChangeText={setInputVanThungPhan3}
+        value={inputVanThungPhan3}
+      />
+      <View style={styles.frameButton}>
         <Button
           style={styles.button}
-          title="Setting"
+          title="Cài Đặt"
           color="green"
-          onPress={() => Alert.alert("Simple Button pressed")}
+          onPress={publishInputThungPhan}
+        />
+      </View>
+      <View style={styles.frameVanOngNuoc}>
+        <VanOngNuoc
+          state={vanOngNuoc1}
+          name={"Van Ống Nước 1"}
+          onChange={() => {
+            toggleSwitch("vanOngNuoc1");
+          }}
+        />
+        <VanOngNuoc
+          state={vanOngNuoc2}
+          name={"Van Ống Nước 2"}
+          onChange={() => {
+            toggleSwitch("vanOngNuoc2");
+          }}
+        />
+        <VanOngNuoc
+          state={vanOngNuoc3}
+          name={"Van Ống Nước 3"}
+          onChange={() => {
+            toggleSwitch("vanOngNuoc3");
+          }}
         />
       </View>
     </View>
@@ -119,27 +193,15 @@ const styles = StyleSheet.create({
     backgroundColor: "green",
     fontSize: 25,
   },
-  control: {
+  frameVanOngNuoc: {
+    marginTop: 50,
+  },
+  frameButton: {
     flexDirection: "row",
-    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 30,
   },
-  textControl: {
-    verticalAlign: "middle",
-    fontSize: 18,
-  },
-  switch: {},
-  input: {
-    height: 30,
-    width: 70,
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 3,
-    textAlign: "center",
-    marginRight: 10,
-  },
-  button: {
-    borderWidth: 10,
-  },
+  button: {},
 });
 
 export default ControlDashboard;
