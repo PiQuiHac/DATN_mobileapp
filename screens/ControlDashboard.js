@@ -39,24 +39,22 @@ const ControlDashboard = () => {
   const [inputVanThungPhan2, setInputVanThungPhan2] = useState(0);
   const [inputVanThungPhan3, setInputVanThungPhan3] = useState(0);
 
-  const toggleSwitch = (topic) => {
-    if (topic === "vanOngNuoc1") {
-      publish(!vanOngNuoc1, topic);
+  const toggleSwitch = (type) => {
+    if (type === "vanOngNuoc1") {
+      publishOngNuoc(!vanOngNuoc1, vanOngNuoc2, vanOngNuoc3);
       setVanOngNuoc1(!vanOngNuoc1);
-    } else if (topic === "vanOngNuoc2") {
-      publish(!vanOngNuoc2, topic);
+    } else if (type === "vanOngNuoc2") {
+      publishOngNuoc(vanOngNuoc1, !vanOngNuoc2, vanOngNuoc3);
       setVanOngNuoc2(!vanOngNuoc2);
-    } else if (topic === "vanOngNuoc3") {
-      publish(!vanOngNuoc3, topic);
+    } else if (type === "vanOngNuoc3") {
+      publishOngNuoc(vanOngNuoc1, vanOngNuoc2, !vanOngNuoc3);
       setVanOngNuoc3(!vanOngNuoc3);
     }
   };
 
   function onConnect() {
     console.log("onConnect");
-    client.subscribe("/bkiot/piquihac/vanOngNuoc1");
-    client.subscribe("/bkiot/piquihac/vanOngNuoc2");
-    client.subscribe("/bkiot/piquihac/vanOngNuoc3");
+    client.subscribe("/bkiot/piquihac/vanOngNuocSub");
     client.subscribe("/bkiot/piquihac/vanThungPhanSub");
   }
 
@@ -76,7 +74,6 @@ const ControlDashboard = () => {
       if (payload.vanOngNuoc3 === 1) setVanOngNuoc3(true);
       else if (payload.vanOngNuoc3 === 0) setVanOngNuoc3(false);
     } else if (message.destinationName === "/bkiot/piquihac/vanThungPhanSub") {
-      console.log(payload);
       if (payload.stateRelay1 === 1) setVanThungPhan1(true);
       else if (payload.stateRelay1 === 0) setVanThungPhan1(false);
       if (payload.stateRelay2 === 1) setVanThungPhan2(true);
@@ -90,11 +87,16 @@ const ControlDashboard = () => {
     console.log("Connect Failed");
   }
 
-  const publish = (value, topic) => {
-    if (value === true) value = 1;
-    else value = 0;
-    message = new Paho.MQTT.Message(JSON.stringify({ value: value }));
-    message.destinationName = `/bkiot/piquihac/${topic}`;
+  const publishOngNuoc = (vanOngNuoc1, vanOngNuoc2, vanOngNuoc3) => {
+    const mess = {
+      value: {
+        vanOngNuoc1: vanOngNuoc1 === true ? 1 : 0,
+        vanOngNuoc2: vanOngNuoc2 === true ? 1 : 0,
+        vanOngNuoc3: vanOngNuoc3 === true ? 1 : 0,
+      },
+    };
+    message = new Paho.MQTT.Message(JSON.stringify(mess));
+    message.destinationName = `/bkiot/piquihac/vanOngNuocPub`;
     client.send(message);
   };
 
