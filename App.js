@@ -1,12 +1,13 @@
-import { StatusBar } from "expo-status-bar";
+import "react-native-gesture-handler";
 import { StyleSheet, Text, View } from "react-native";
-import ControlDashboard from "./screens/ControlDashboard";
+import { NavigationContainer } from "@react-navigation/native";
+import MyDrawer from "./navigation/MyDrawer";
 
 export default function App() {
   return (
-    <View>
-      <ControlDashboard />
-    </View>
+    <NavigationContainer>
+      <MyDrawer />
+    </NavigationContainer>
   );
 }
 

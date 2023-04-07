@@ -1,17 +1,11 @@
-import {
-  StyleSheet,
-  Text,
-  Switch,
-  View,
-  SafeAreaView,
-  TextInput,
-  Button,
-} from "react-native";
+import { StyleSheet, ScrollView, View, Button } from "react-native";
 import { useEffect, useState } from "react";
 import init from "react_native_mqtt";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import VanOngNuoc from "../components/VanOngNuoc";
 import VanThungPhan from "../components/VanThungPhan";
+import MayBom from "../components/MayBom";
+import ThungPhi from "../components/ThungPhi";
 
 init({
   size: 10000,
@@ -39,6 +33,8 @@ const ControlDashboard = () => {
   const [inputVanThungPhan2, setInputVanThungPhan2] = useState(0);
   const [inputVanThungPhan3, setInputVanThungPhan3] = useState(0);
 
+  const [vanMayBom1, setVanMayBom1] = useState(false);
+
   const toggleSwitch = (type) => {
     if (type === "vanOngNuoc1") {
       publishOngNuoc(!vanOngNuoc1, vanOngNuoc2, vanOngNuoc3);
@@ -49,6 +45,13 @@ const ControlDashboard = () => {
     } else if (type === "vanOngNuoc3") {
       publishOngNuoc(vanOngNuoc1, vanOngNuoc2, !vanOngNuoc3);
       setVanOngNuoc3(!vanOngNuoc3);
+    } else {
+      message = new Paho.MQTT.Message(
+        JSON.stringify({ value: vanMayBom1 === true ? 0 : 1 })
+      );
+      message.destinationName = `/bkiot/piquihac/test`;
+      client.send(message);
+      setVanMayBom1(!vanMayBom1);
     }
   };
 
@@ -56,6 +59,11 @@ const ControlDashboard = () => {
     console.log("onConnect");
     client.subscribe("/bkiot/piquihac/vanOngNuocSub");
     client.subscribe("/bkiot/piquihac/vanThungPhanSub");
+    client.subscribe("/bkiot/piquihac/test");
+  }
+
+  function onFail() {
+    console.log("Connect Failed");
   }
 
   function onConnectionLost(responseObject) {
@@ -80,11 +88,10 @@ const ControlDashboard = () => {
       else if (payload.stateRelay2 === 0) setVanThungPhan2(false);
       if (payload.stateRelay3 === 1) setVanThungPhan3(true);
       else if (payload.stateRelay3 === 0) setVanThungPhan3(false);
+    } else {
+      if (payload === 1) setVanMayBom1(true);
+      else setVanMayBom1(false);
     }
-  }
-
-  function onFail() {
-    console.log("Connect Failed");
   }
 
   const publishOngNuoc = (vanOngNuoc1, vanOngNuoc2, vanOngNuoc3) => {
@@ -130,9 +137,80 @@ const ControlDashboard = () => {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Dasboard</Text>
-      <VanThungPhan
+    <ScrollView style={styles.container}>
+      <ThungPhi />
+      <View style={styles.frameMayBom}>
+        <MayBom
+          state={vanMayBom1}
+          onChange={() => {
+            toggleSwitch("vanMayBom1");
+          }}
+        />
+        <MayBom />
+      </View>
+
+      <View style={styles.frameMayBom}>
+        <VanOngNuoc
+          state={vanOngNuoc1}
+          name={"Van Ống Nước 1"}
+          onChange={() => {
+            toggleSwitch("vanOngNuoc1");
+          }}
+        />
+        <VanOngNuoc
+          state={vanOngNuoc2}
+          name={"Van Ống Nước 2"}
+          onChange={() => {
+            toggleSwitch("vanOngNuoc2");
+          }}
+        />
+        <VanOngNuoc
+          state={vanOngNuoc3}
+          name={"Van Ống Nước 3"}
+          onChange={() => {
+            toggleSwitch("vanOngNuoc3");
+          }}
+        />
+      </View>
+
+      <View style={styles.frameOngNuoc}>
+        <VanThungPhan
+          name={"Van Thùng Phân 1"}
+          state={vanThungPhan1}
+          onChangeText={setInputVanThungPhan1}
+          value={inputVanThungPhan1}
+        />
+        <VanThungPhan
+          name={"Van Thùng Phân 2"}
+          state={vanThungPhan1}
+          onChangeText={setInputVanThungPhan1}
+          value={inputVanThungPhan1}
+        />
+        <VanThungPhan
+          name={"Van Thùng Phân 2"}
+          state={vanThungPhan1}
+          onChangeText={setInputVanThungPhan1}
+          value={inputVanThungPhan1}
+        />
+        <View style={styles.frameButton}>
+          <View style={{ marginRight: 20 }}>
+            <Button
+              style={styles.button}
+              title="Hủy Bỏ"
+              color="#ccc"
+              // onPress={publishInputThungPhan}
+            />
+          </View>
+          <Button
+            style={styles.buttonCaiDat}
+            title="Cài Đặt"
+            color="#1261A0"
+            // onPress={publishInputThungPhan}
+          />
+        </View>
+      </View>
+
+      {/* <VanThungPhan
         name={"Van Thùng Phân 1"}
         state={vanThungPhan1}
         onChangeText={setInputVanThungPhan1}
@@ -180,14 +258,16 @@ const ControlDashboard = () => {
             toggleSwitch("vanOngNuoc3");
           }}
         />
-      </View>
-    </View>
+      </View> */}
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 20,
+    marginTop: 10,
+    marginLeft: 10,
+    marginRight: 10,
   },
   title: {
     textAlign: "center",
@@ -196,14 +276,28 @@ const styles = StyleSheet.create({
     fontSize: 25,
   },
   frameVanOngNuoc: {
-    marginTop: 50,
+    marginTop: 10,
   },
   frameButton: {
     flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 30,
+    justifyContent: "flex-end",
   },
-  button: {},
+  frameMayBom: {
+    marginTop: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  frameOngNuoc: {
+    marginTop: 20,
+    width: "100%",
+    height: 280,
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 10,
+  },
+  buttonCaiDat: {
+    marginRight: 50,
+  },
 });
 
 export default ControlDashboard;

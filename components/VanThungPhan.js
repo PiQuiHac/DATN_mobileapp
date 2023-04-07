@@ -1,15 +1,36 @@
 import { View, Text, StyleSheet, TextInput, Button } from "react-native";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
 const VanThungPhan = (props) => {
   return (
-    <View>
-      <View style={styles.control}>
-        <Text style={styles.textControl}>{props.name}</Text>
+    <View style={styles.container}>
+      <View style={styles.info}>
+        <MaterialCommunityIcons
+          name="bucket"
+          size={50}
+          color={"#3895D3"}
+        ></MaterialCommunityIcons>
+        <View>
+          <Text style={styles.infoName}>Thùng Phân 1</Text>
+          <Text style={styles.infoV}> 500 ml</Text>
+        </View>
+      </View>
+      <TextInput
+        style={styles.input}
+        onChangeText={props.onChangeText}
+        value={props.value}
+        placeholder="(ml)"
+        keyboardType="numeric"
+      />
+      <Text style={props.state === true ? styles.stateOpen : styles.stateClose}>
+        {props.state === true ? "Mở" : "Đóng"}
+      </Text>
+      {/* <View style={styles.control}>
         <TextInput
           style={styles.input}
           onChangeText={props.onChangeText}
           value={props.value}
-          placeholder="giây (s)"
+          placeholder="thể tích cần pha (ml)"
           keyboardType="numeric"
         />
         <Text
@@ -17,12 +38,29 @@ const VanThungPhan = (props) => {
         >
           {props.state === true ? "Mở" : "Đóng"}
         </Text>
-      </View>
+      </View> */}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    marginBottom: 20,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  info: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  infoName: {
+    verticalAlign: "middle",
+  },
+  infoV: {
+    verticalAlign: "middle",
+  },
   control: {
     flexDirection: "row",
     alignItems: "center",
@@ -35,30 +73,33 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 30,
-    width: 70,
+    width: 100,
     borderWidth: 1,
-    borderRadius: 10,
+    borderTopWidth: 0,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
     padding: 3,
     textAlign: "center",
     marginLeft: 10,
+    marginRight: 35,
   },
   stateOpen: {
     fontSize: 18,
-    marginLeft: 10,
     color: "white",
-    backgroundColor: "green",
+    backgroundColor: "#62CDFF",
+    width: 60,
     paddingLeft: 8,
     paddingRight: 8,
-    borderRadius: 10,
+    borderRadius: 5,
   },
   stateClose: {
     fontSize: 18,
-    marginLeft: 10,
     color: "white",
-    backgroundColor: "red",
+    backgroundColor: "#ccc",
+    width: 60,
     paddingLeft: 8,
     paddingRight: 8,
-    borderRadius: 10,
+    borderRadius: 5,
   },
   frameButton: {
     width: 80,
