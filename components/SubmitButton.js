@@ -14,7 +14,7 @@ export default function SubmitButton(props) {
 }
 const styles = StyleSheet.create({
   submitButton: {
-    backgroundColor: '#7AC143',
+    backgroundColor: '#33CCFF',
     borderRadius: 100,
     overflow: 'hidden',
     width: '90%',

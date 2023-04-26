@@ -17,8 +17,24 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 
 import ControlDashboard from "../screens/ControlDashboard";
 import ViewDashboard from "../screens/ViewDashboard";
+import { useNavigation } from '@react-navigation/native';
+import { auth } from '../firebase'
+
 
 const CustomDrawerContent = (props) => {
+  const navigation = useNavigation()
+
+  const handleSignOut = () => {
+    auth
+      .signOut()
+      .then(() => {
+        navigation.replace("Login")
+      })
+      .catch(error => alert(error.message))
+  }
+
+
+
   return (
     <View style={{ flex: 1 }}>
       <DrawerContentScrollView {...props}>
@@ -37,7 +53,7 @@ const CustomDrawerContent = (props) => {
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
       <View style={styles.footer}>
-        <TouchableOpacity onPress={() => {}}>
+        <TouchableOpacity onPress={() => {navigation.navigate('Login');}}>
           <View
             style={{
               flexDirection: "row",

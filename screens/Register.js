@@ -12,27 +12,30 @@ import {
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
-import loginBackground from '../assets/login_background.png';
-import logoStar from '../assets/logo_star.png';
+import loginBackground from '../assets/background2.png';
+import logoBK from '../assets/LogoBK.png'
 import SubmitButton from '../components/SubmitButton';
+import { useNavigation } from '@react-navigation/native';
+import {createUserWithEmailAndPassword} from 'firebase/auth';
+import auth from '../firebase';
+
 export default function Register() {
   const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-//   const [acceptPolicy, setAcceptPolicy] = useState(false);
   const [showpass, setShowpass] = useState(true);
   const [showConfirm, setShowConfirm] = useState(true);
 
+  const navigation = useNavigation();
+  
 
   // check name,user name
   //check email format
   //check password and confirm
-  function handleRegister(name, email, password, confirmPassword, username) {
-    if (!name || !email || !password || !confirmPassword || !username)
-      return Alert.alert("Empty");
-    else if (name.length < 3) return Alert.alert("Short Name");
+  function handleInput(name, email, password, confirmPassword) {
+    if (!name || !email || !password || !confirmPassword ) return Alert.alert("Please fill out ");
+    if (name.length < 3) return Alert.alert("Short Name");
     else if (
       !email
         .toLocaleLowerCase()
@@ -44,40 +47,19 @@ export default function Register() {
     else if (password.length < 6) return Alert.alert("Short password");
     else if (password != confirmPassword)
       return Alert.alert("Password not matched");
-    else if (username.length < 4) return Alert.alert("Short username");
-    else if (/\s/.test(username))
-      return Alert.alert("Invalid Username");
-    // else if (!acceptPolicy) Alert.alert("Please accept policy");
-    else return true;
+    return true;
   }
-  const onClickRegister = () => {
-    //call handleRegister than mutation to gql to get data
-    if (handleRegister(name, email, password, confirmPassword, username)) {
-      SignUp({
-        variables: {
-          company: '',
-          email: email,
-          password: password,
-          name: name,
-          username: username,
-        },
-      })
-        .then(data => {
-          Alert.alert("Success. Let's login", '', [
-            {
-              text: 'OK',
-              onPress: () => {
-                navigation.navigate('LoginMain');
-              },
-            },
-          ]);
-          email = name = username = password = confirmPassword = '';
+
+  const handleSignUp = () => {
+    if (handleInput(name, email, password, confirmPassword))
+        createUserWithEmailAndPassword(auth, email, password)
+        .then(userCredentials => {
+          const user = userCredentials.user;
+          console.log('New Account with:', user.email);
         })
-        .catch(error => {
-          Alert.alert(error.message), console.log(error);
-        });
-    }
-  };
+        .catch(error => alert(error.code));
+        
+};
 
   return (
     <SafeAreaView style={styles.safe_area}>
@@ -89,15 +71,15 @@ export default function Register() {
             }}
             enableOnAndroid={true}>
             <View style={styles.logo_container}>
-              <Image source={logoStar} style={styles.image} />
-              <Text style={styles.app_name}>Name</Text>
+              <Image source={logoBK} style={styles.image} />
+              <Text style={styles.app_name}>Create Account</Text>
             </View>
+
             <View style={styles.input_background}>
               <View style={styles.input_container}>
-                <Text style={styles.register}>{"Register"}</Text>
                 <TextInput
                   placeholder={"Name"}
-                  defaultValue=""
+                  value={name}
                   onChangeText={value => {
                     setName(value);
                   }}
@@ -106,24 +88,16 @@ export default function Register() {
                 />
                 <TextInput
                   placeholder={"Email"}
-                  defaultValue=""
+                  value={email}
                   onChangeText={value => {
                     setEmail(value);
-                  }}
-                  style={styles.input_holder}
-                />
-                <TextInput
-                  placeholder={"User name"}
-                  defaultValue=""
-                  onChangeText={value => {
-                    setUsername(value);
                   }}
                   style={styles.input_holder}
                 />
                 <View style={styles.password_container}>
                   <TextInput
                     placeholder={"Password"}
-                    defaultValue=""
+                    value={password}
                     secureTextEntry={showpass}
                     onChangeText={value => {
                       setPassword(value);
@@ -143,7 +117,7 @@ export default function Register() {
                 <View style={styles.password_container}>
                   <TextInput
                     placeholder={"Confirm password"}
-                    defaultValue=""
+                    value={confirmPassword}
                     secureTextEntry={showConfirm}
                     onChangeText={value => {
                       setConfirmPassword(value);
@@ -160,42 +134,26 @@ export default function Register() {
                   </TouchableOpacity>
                 </View>
               </View>
-
-              {/* <View style={styles.policy_container}>
-                <View style={styles.accept}>
-                  <CheckBox
-                    value={acceptPolicy}
-                    onValueChange={setAcceptPolicy}
-                  />
-                  <Text style={[styles.policy, {color: '#989898'}]}>
-                    {"Agree"}
-                  </Text>
-                  <TouchableOpacity>
-                    <Text style={styles.policy}>{t('register.policy')}</Text>
-                  </TouchableOpacity>
-                </View>
-                <View></View>
-              </View> */}
-
               <View style={styles.register_button}>
                 <SubmitButton
                   title={"Register"}
-                  action={onClickRegister}
+                  action={handleSignUp}
+                  style={{backgroundColor: '#989898'}}
                 />
                 <View style={styles.align}>
                   <Text style={[styles.login_now, {color: '#989898'}]}>
-                    {"Hava an account? "}
+                    {"Have an account? "}
                   </Text>
                   <TouchableOpacity
                     onPress={() => {
-                      navigation.navigate('LoginMain');
+                      navigation.navigate('Login');
                     }}>
                     <Text style={styles.login_now}>
                       {"Login now"}
                     </Text>
                   </TouchableOpacity>
                 </View>
-              </View>
+              </View>           
             </View>
           </KeyboardAwareScrollView>
         </ImageBackground>
@@ -207,7 +165,7 @@ export default function Register() {
 const styles = StyleSheet.create({
   safe_area: {flex: 1},
   logo_container: {
-    flex: 3,
+    flex: 7,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
@@ -215,7 +173,7 @@ const styles = StyleSheet.create({
   image: {height: 125, aspectRatio: 1, marginBottom: 10},
   app_name: {fontSize: 24, fontWeight: '600', color: '#45502E'},
   input_background: {
-    flex: 7,
+    flex: 3,
     backgroundColor: '#ffffff',
     shadowColor: '#f5f5f5',
     shadowOffset: [0, -10],
@@ -226,48 +184,35 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   input_container: {
-    flex: 6,
+    flex: 5,
     borderColor: 'green',
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
   register: {
     left: '5%',
-    alignItems: 'flex-start',
-    marginBottom: 10,
+    alignItems: 'center',
+    marginBottom: 20,
     fontSize: 24,
     fontWeight: '600',
-    color: '#45502E',
+    color: '#33CCFF',
   },
   input_holder: {
     width: '90%',
+    height: 50,
     backgroundColor: '#F4F6F9',
-    marginVertical: 5,
-    borderRadius: 5,
+    marginVertical: 10,
+    borderRadius: 10,
     left: '5%',
     paddingHorizontal: 10,
   },
-  policy_container: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: '5%',
-    marginBottom: 5,
-  },
-  accept: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  policy: {color: '#90CB62', fontSize: 11},
   register_button: {
     alignItems: 'center',
     flex: 3,
     justifyContent: 'flex-end',
     paddingBottom: 5,
   },
-  login_now: {color: '#90CB62', fontSize: 14},
+  login_now: {color: '#0000FF', fontSize: 14},
   align: {flexDirection: 'row', marginTop: 10},
   password_container: {
     justifyContent: 'center',

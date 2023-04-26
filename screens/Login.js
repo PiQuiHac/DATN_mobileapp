@@ -1,4 +1,4 @@
-import React, {useState, useContext} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -13,10 +13,12 @@ import {
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import SubmitButton from '../components/SubmitButton';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import loginBackground from '../assets/login_background.png';
-import logoStar from '../assets/logo_star.png';
-import logoBK from '../assets/Logo BK_vien trang.png';
+import loginBackground from '../assets/background2.png';
+import logoBK from '../assets/LogoBK.png';
 import { useNavigation } from '@react-navigation/native';
+import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
+import auth from '../firebase';
+
 //this is for test user
 export default function Login() {
   // sign in funtion in app
@@ -28,10 +30,19 @@ export default function Login() {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
 
   const navigation = useNavigation();
+
+//   useEffect(() => {
+//     onAuthStateChanged(auth, (user)=> {
+//         if (user) {
+//             navigator.navigate("MyDrawer");
+//         }
+//     })
+// }, [])
+
   /** This is for handle input when login
    * check length, empty email or password,
    */
-  const handleLogin = (email, password) => {
+  const handleInput = (email, password) => {
     if (!email || !password) return Alert.alert("Empty");
     else if (
       !email
@@ -40,12 +51,23 @@ export default function Login() {
           /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
         )
     )
-      return Alert.alert("Invalid Email");
+      return Alert.alert("Invalid Email, please enter correct syntax email");
     else if (password.length < 6) return Alert.alert("Short Password");
 
     return true;
   };
-  // const [handle] = useMutation(login);
+  
+  const handleLogin = () => {
+    if (handleInput(email, password)) {
+      signInWithEmailAndPassword(email, password)
+      .then(userCredentials => {
+        const user = userCredentials.user;
+        console.log('Logged in with:', user.email);
+      })
+      .catch(error => alert(error.message))
+      return true;
+    } 
+  }
 
   return (
     <SafeAreaView style={styles.safe_area}>
@@ -58,20 +80,21 @@ export default function Login() {
             enableOnAndroid={true}
             automaticallyAdjustContentInsets={false}>
             <View style={styles.logo_container}>
-              <Image source={logoStar} style={styles.image} />
-              <Text style={styles.app_name}>name</Text>
+              <Image source={logoBK} style={styles.image} />
+              <Text style={styles.app_name}>Log In</Text>
             </View>
             <View style={styles.input_background}>
               <View style={styles.input_container}>
-                <Text style={styles.login}>Login</Text>
                 <TextInput
                   placeholder={"Email"}
+                  value={email}
                   onChangeText={value => setEmail(value)}
                   style={styles.input_holder}
                 />
                 <View style={styles.password_holder}>
                   <TextInput
                     placeholder={"Password"}
+                    value={password}
                     onChangeText={value => setPassword(value)}
                     style={[styles.input_holder]}
                     secureTextEntry={secureTextEntry}
@@ -93,7 +116,7 @@ export default function Login() {
                 </View>
                 <View>
                   <TouchableOpacity>
-                    <Text>Forgot Password </Text>
+                    <Text>Forgot Password ?</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -102,10 +125,7 @@ export default function Login() {
                 <SubmitButton
                   title={"Login"}
                   action={() => {
-                    if (handleLogin(email, password)) {
-                      // handle({variables: {email: email, password: password}})
-                        // .then(data => signIn(email, data))
-                        // .catch(err => console.error(err));
+                    if (handleInput(email, password)) {
                         navigation.navigate('MyDrawer');
                     }
                   }}
@@ -135,7 +155,7 @@ export default function Login() {
 const styles = StyleSheet.create({
   safe_area: {flex: 1},
   logo_container: {
-    flex: 5,
+    flex: 7,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
@@ -143,7 +163,7 @@ const styles = StyleSheet.create({
   image: {height: 125, aspectRatio: 1, marginBottom: 10},
   app_name: {fontSize: 24, fontWeight: '600', color: '#45502E'},
   input_background: {
-    flex: 5,
+    flex: 3,
     backgroundColor: '#ffffff',
     shadowColor: '#f5f5f5',
     shadowOffset: [0, -10],
@@ -154,7 +174,8 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   input_container: {
-    flex: 6,
+    flex: 4,
+    borderColor: 'green',
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
@@ -167,7 +188,7 @@ const styles = StyleSheet.create({
     color: '#45502E',
   },
   forgot_container: {
-    flex: 1.9,
+    flex: 1,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -180,7 +201,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   register: {flexDirection: 'row', marginTop: 10},
-  regis_now: {color: '#90CB62', fontSize: 14},
+  regis_now: {color: '#0000FF', fontSize: 14},
   login_button: {
     alignItems: 'center',
     flex: 2.1,
@@ -189,9 +210,10 @@ const styles = StyleSheet.create({
   },
   input_holder: {
     width: '90%',
+    height: 50,
     backgroundColor: '#F4F6F9',
     marginVertical: 10,
-    borderRadius: 5,
+    borderRadius: 10,
     left: '5%',
     paddingHorizontal: 10,
   },
