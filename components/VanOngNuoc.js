@@ -2,16 +2,6 @@ import { View, Switch, Text, StyleSheet, Image } from "react-native";
 
 const VanOngNuoc = (props) => {
   return (
-    // <View style={styles.control}>
-    //   <Text style={styles.textControl}>{props.name}</Text>
-    //   <Switch
-    //     style={styles.switch}
-    //     trackColor={{ false: "#767577", true: "#6aa84f" }}
-    //     thumbColor={props.state ? "green" : "#f4f3f4"}
-    //     onChange={props.onChange}
-    //     value={props.state}
-    //   />
-    // </View>
     <View style={styles.box}>
       <View style={styles.frame}>
         <Image
@@ -20,10 +10,16 @@ const VanOngNuoc = (props) => {
         />
       </View>
       <View style={styles.frame}>
-        <Switch style={styles.switch}></Switch>
+        <Switch
+          style={styles.switch}
+          trackColor={{ false: "#767577", true: "#B8F2FF" }}
+          thumbColor={props.state ? "#58CCED" : "#f4f3f4"}
+          onChange={props.onChange}
+          value={props.state}
+        />
       </View>
       <View style={styles.frame}>
-        <Text style={styles.name}>Van Ống Nước 1</Text>
+        <Text style={styles.name}>{props.name}</Text>
       </View>
     </View>
   );

@@ -11,7 +11,7 @@ const VanThungPhan = (props) => {
           color={"#3895D3"}
         ></MaterialCommunityIcons>
         <View>
-          <Text style={styles.infoName}>Thùng Phân 1</Text>
+          <Text style={styles.infoName}>{props.name}</Text>
           <Text style={styles.infoV}> 500 ml</Text>
         </View>
       </View>
@@ -25,20 +25,6 @@ const VanThungPhan = (props) => {
       <Text style={props.state === true ? styles.stateOpen : styles.stateClose}>
         {props.state === true ? "Mở" : "Đóng"}
       </Text>
-      {/* <View style={styles.control}>
-        <TextInput
-          style={styles.input}
-          onChangeText={props.onChangeText}
-          value={props.value}
-          placeholder="thể tích cần pha (ml)"
-          keyboardType="numeric"
-        />
-        <Text
-          style={props.state === true ? styles.stateOpen : styles.stateClose}
-        >
-          {props.state === true ? "Mở" : "Đóng"}
-        </Text>
-      </View> */}
     </View>
   );
 };
@@ -91,6 +77,7 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
     paddingRight: 8,
     borderRadius: 5,
+    textAlign: "center",
   },
   stateClose: {
     fontSize: 18,
@@ -100,6 +87,7 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
     paddingRight: 8,
     borderRadius: 5,
+    textAlign: "center",
   },
   frameButton: {
     width: 80,

@@ -33,33 +33,59 @@ const ControlDashboard = () => {
   const [inputVanThungPhan2, setInputVanThungPhan2] = useState(0);
   const [inputVanThungPhan3, setInputVanThungPhan3] = useState(0);
 
-  const [vanMayBom1, setVanMayBom1] = useState(false);
+  const [vanMayBomIn, setVanMayBomIn] = useState(false);
+  const [vanMayBomOut, setVanMayBomOut] = useState(false);
 
-  const toggleSwitch = (type) => {
+  const publish = (topic, mess) => {
+    message = new Paho.MQTT.Message(JSON.stringify(mess));
+    message.destinationName = `/bkiot/piquihac/${topic}`;
+    client.send(message);
+  };
+
+  const handleSwitch = (type) => {
+    let setted = 0;
     if (type === "vanOngNuoc1") {
-      publishOngNuoc(!vanOngNuoc1, vanOngNuoc2, vanOngNuoc3);
       setVanOngNuoc1(!vanOngNuoc1);
+      setted = 1;
     } else if (type === "vanOngNuoc2") {
-      publishOngNuoc(vanOngNuoc1, !vanOngNuoc2, vanOngNuoc3);
       setVanOngNuoc2(!vanOngNuoc2);
+      setted = 2;
     } else if (type === "vanOngNuoc3") {
-      publishOngNuoc(vanOngNuoc1, vanOngNuoc2, !vanOngNuoc3);
       setVanOngNuoc3(!vanOngNuoc3);
+      setted = 3;
+    } else if (type === "vanMayBomIn") {
+      setVanMayBomIn(!vanMayBomIn);
+      setted = 4;
     } else {
-      message = new Paho.MQTT.Message(
-        JSON.stringify({ value: vanMayBom1 === true ? 0 : 1 })
-      );
-      message.destinationName = `/bkiot/piquihac/test`;
-      client.send(message);
-      setVanMayBom1(!vanMayBom1);
+      setVanMayBomOut(!vanMayBomOut);
+      setted = 5;
     }
+    const mess = {
+      valve4: setted === 1 ? (!vanOngNuoc1 ? 1 : 0) : vanOngNuoc1 ? 1 : 0,
+      valve5: setted === 2 ? (!vanOngNuoc2 ? 1 : 0) : vanOngNuoc2 ? 1 : 0,
+      valve6: setted === 3 ? (!vanOngNuoc3 ? 1 : 0) : vanOngNuoc3 ? 1 : 0,
+      pumpIn: setted === 4 ? (!vanMayBomIn ? 1 : 0) : vanMayBomIn ? 1 : 0,
+      pumpOut: setted === 5 ? (!vanMayBomOut ? 1 : 0) : vanMayBomOut ? 1 : 0,
+    };
+    publish("waterValve1", mess);
+  };
+
+  const setTP = () => {
+    const mess = {
+      valve1: 0,
+      v1: Number(inputVanThungPhan1),
+      valve2: 0,
+      v2: Number(inputVanThungPhan2),
+      valve3: 0,
+      v3: Number(inputVanThungPhan3),
+    };
+    publish("ferValve1", mess);
   };
 
   function onConnect() {
     console.log("onConnect");
-    client.subscribe("/bkiot/piquihac/vanOngNuocSub");
-    client.subscribe("/bkiot/piquihac/vanThungPhanSub");
-    client.subscribe("/bkiot/piquihac/test");
+    client.subscribe("/bkiot/piquihac/waterValve2");
+    client.subscribe("/bkiot/piquihac/ferValve2");
   }
 
   function onFail() {
@@ -73,59 +99,24 @@ const ControlDashboard = () => {
   }
 
   function onMessageArrived(message) {
-    const payload = JSON.parse(message.payloadString).value;
-    if (message.destinationName === "/bkiot/piquihac/vanOngNuocSub") {
-      if (payload.vanOngNuoc1 === 1) setVanOngNuoc1(true);
-      else if (payload.vanOngNuoc1 === 0) setVanOngNuoc1(false);
-      if (payload.vanOngNuoc2 === 1) setVanOngNuoc2(true);
-      else if (payload.vanOngNuoc2 === 0) setVanOngNuoc2(false);
-      if (payload.vanOngNuoc3 === 1) setVanOngNuoc3(true);
-      else if (payload.vanOngNuoc3 === 0) setVanOngNuoc3(false);
-    } else if (message.destinationName === "/bkiot/piquihac/vanThungPhanSub") {
-      if (payload.stateRelay1 === 1) setVanThungPhan1(true);
-      else if (payload.stateRelay1 === 0) setVanThungPhan1(false);
-      if (payload.stateRelay2 === 1) setVanThungPhan2(true);
-      else if (payload.stateRelay2 === 0) setVanThungPhan2(false);
-      if (payload.stateRelay3 === 1) setVanThungPhan3(true);
-      else if (payload.stateRelay3 === 0) setVanThungPhan3(false);
-    } else {
-      if (payload === 1) setVanMayBom1(true);
-      else setVanMayBom1(false);
+    const payload = JSON.parse(message.payloadString);
+    console.log("payload: ", payload);
+
+    if (message.destinationName === "/bkiot/piquihac/waterValve2") {
+      payload.valve4 === 1 ? setVanOngNuoc1(true) : setVanOngNuoc1(false);
+      payload.valve5 === 1 ? setVanOngNuoc2(true) : setVanOngNuoc2(false);
+      payload.valve6 === 1 ? setVanOngNuoc3(true) : setVanOngNuoc3(false);
+      payload.pumpIn === 1 ? setVanMayBomIn(true) : setVanMayBomIn(false);
+      payload.pumpOut === 1 ? setVanMayBomOut(true) : setVanMayBomOut(false);
+    } else if (message.destinationName === "/bkiot/piquihac/ferValve2") {
+      payload.valve1 === 1 ? setVanThungPhan1(true) : setVanThungPhan1(false);
+      payload.valve2 === 1 ? setVanThungPhan2(true) : setVanThungPhan2(false);
+      payload.valve3 === 1 ? setVanThungPhan3(true) : setVanThungPhan3(false);
     }
   }
 
-  const publishOngNuoc = (vanOngNuoc1, vanOngNuoc2, vanOngNuoc3) => {
-    const mess = {
-      value: {
-        vanOngNuoc1: vanOngNuoc1 === true ? 1 : 0,
-        vanOngNuoc2: vanOngNuoc2 === true ? 1 : 0,
-        vanOngNuoc3: vanOngNuoc3 === true ? 1 : 0,
-      },
-    };
-    message = new Paho.MQTT.Message(JSON.stringify(mess));
-    message.destinationName = `/bkiot/piquihac/vanOngNuocPub`;
-    client.send(message);
-  };
-
-  const publishInputThungPhan = () => {
-    const mess = {
-      value: {
-        stateRelay1: 0,
-        timeRelay1: Number(inputVanThungPhan1),
-        stateRelay2: 0,
-        timeRelay2: Number(inputVanThungPhan2),
-        stateRelay3: 0,
-        timeRelay3: Number(inputVanThungPhan3),
-      },
-    };
-    message = new Paho.MQTT.Message(JSON.stringify(mess));
-    message.destinationName = `/bkiot/piquihac/vanThungPhan`;
-    client.send(message);
-  };
-
   client.onConnectionLost = onConnectionLost;
   client.onMessageArrived = onMessageArrived;
-
   useEffect(() => {
     client.connect({
       onSuccess: onConnect,
@@ -141,12 +132,19 @@ const ControlDashboard = () => {
       <ThungPhi />
       <View style={styles.frameMayBom}>
         <MayBom
-          state={vanMayBom1}
+          state={vanMayBomIn}
+          name={"Máy Bơm Nước Vào"}
           onChange={() => {
-            toggleSwitch("vanMayBom1");
+            handleSwitch("vanMayBomIn");
           }}
         />
-        <MayBom />
+        <MayBom
+          state={vanMayBomOut}
+          name={"Máy Bơm Nước Ra"}
+          onChange={() => {
+            handleSwitch("vanMayBomOut");
+          }}
+        />
       </View>
 
       <View style={styles.frameMayBom}>
@@ -154,43 +152,43 @@ const ControlDashboard = () => {
           state={vanOngNuoc1}
           name={"Van Ống Nước 1"}
           onChange={() => {
-            toggleSwitch("vanOngNuoc1");
+            handleSwitch("vanOngNuoc1");
           }}
         />
         <VanOngNuoc
           state={vanOngNuoc2}
           name={"Van Ống Nước 2"}
           onChange={() => {
-            toggleSwitch("vanOngNuoc2");
+            handleSwitch("vanOngNuoc2");
           }}
         />
         <VanOngNuoc
           state={vanOngNuoc3}
           name={"Van Ống Nước 3"}
           onChange={() => {
-            toggleSwitch("vanOngNuoc3");
+            handleSwitch("vanOngNuoc3");
           }}
         />
       </View>
 
       <View style={styles.frameOngNuoc}>
         <VanThungPhan
-          name={"Van Thùng Phân 1"}
+          name={"Thùng Phân 1"}
           state={vanThungPhan1}
           onChangeText={setInputVanThungPhan1}
           value={inputVanThungPhan1}
         />
         <VanThungPhan
-          name={"Van Thùng Phân 2"}
-          state={vanThungPhan1}
-          onChangeText={setInputVanThungPhan1}
-          value={inputVanThungPhan1}
+          name={"Thùng Phân 2"}
+          state={vanThungPhan2}
+          onChangeText={setInputVanThungPhan2}
+          value={inputVanThungPhan2}
         />
         <VanThungPhan
-          name={"Van Thùng Phân 2"}
-          state={vanThungPhan1}
-          onChangeText={setInputVanThungPhan1}
-          value={inputVanThungPhan1}
+          name={"Thùng Phân 3"}
+          state={vanThungPhan3}
+          onChangeText={setInputVanThungPhan3}
+          value={inputVanThungPhan3}
         />
         <View style={styles.frameButton}>
           <View style={{ marginRight: 20 }}>
@@ -198,67 +196,17 @@ const ControlDashboard = () => {
               style={styles.button}
               title="Hủy Bỏ"
               color="#ccc"
-              // onPress={publishInputThungPhan}
+              ///onPress={handleTP}
             />
           </View>
           <Button
             style={styles.buttonCaiDat}
             title="Cài Đặt"
             color="#1261A0"
-            // onPress={publishInputThungPhan}
+            onPress={setTP}
           />
         </View>
       </View>
-
-      {/* <VanThungPhan
-        name={"Van Thùng Phân 1"}
-        state={vanThungPhan1}
-        onChangeText={setInputVanThungPhan1}
-        value={inputVanThungPhan1}
-      />
-      <VanThungPhan
-        name={"Van Thùng Phân 2"}
-        state={vanThungPhan2}
-        onChangeText={setInputVanThungPhan2}
-        value={inputVanThungPhan2}
-      />
-      <VanThungPhan
-        name={"Van Thùng Phân 3"}
-        state={vanThungPhan3}
-        onChangeText={setInputVanThungPhan3}
-        value={inputVanThungPhan3}
-      />
-      <View style={styles.frameButton}>
-        <Button
-          style={styles.button}
-          title="Cài Đặt"
-          color="green"
-          onPress={publishInputThungPhan}
-        />
-      </View>
-      <View style={styles.frameVanOngNuoc}>
-        <VanOngNuoc
-          state={vanOngNuoc1}
-          name={"Van Ống Nước 1"}
-          onChange={() => {
-            toggleSwitch("vanOngNuoc1");
-          }}
-        />
-        <VanOngNuoc
-          state={vanOngNuoc2}
-          name={"Van Ống Nước 2"}
-          onChange={() => {
-            toggleSwitch("vanOngNuoc2");
-          }}
-        />
-        <VanOngNuoc
-          state={vanOngNuoc3}
-          name={"Van Ống Nước 3"}
-          onChange={() => {
-            toggleSwitch("vanOngNuoc3");
-          }}
-        />
-      </View> */}
     </ScrollView>
   );
 };

@@ -3,14 +3,14 @@ import { StyleSheet, Text, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import MyDrawer from "./navigation/MyDrawer";
 import Login from "./screens/Login";
-import Register from "./screens/Register"
+import Register from "./screens/Register";
 
 export default function App() {
   return (
     <NavigationContainer>
       {/* <Login /> */}
-      <Register />
-      {/* <MyDrawer /> */}
+      {/* <Register /> */}
+      <MyDrawer />
     </NavigationContainer>
   );
 }

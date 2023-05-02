@@ -11,7 +11,7 @@ const MayBom = (props) => {
           value={props.state}
         />
       </View>
-      <Text style={styles.name}>Máy Bơm Nước Vào</Text>
+      <Text style={styles.name}>{props.name}</Text>
     </View>
   );
 };
