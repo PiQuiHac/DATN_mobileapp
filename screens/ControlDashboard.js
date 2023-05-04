@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView, View, Button } from "react-native";
+import { StyleSheet, ScrollView, View, Button, Alert } from "react-native";
 import { useEffect, useState } from "react";
 import init from "react_native_mqtt";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -32,12 +32,14 @@ const ControlDashboard = () => {
   const [inputVanThungPhan1, setInputVanThungPhan1] = useState(0);
   const [inputVanThungPhan2, setInputVanThungPhan2] = useState(0);
   const [inputVanThungPhan3, setInputVanThungPhan3] = useState(0);
+  const [thetichTP, setTheTichTP] = useState({ tp1: 0, tp2: 0, tp3: 0 });
+  const [vDrum, setVDrum] = useState(0);
 
   const [vanMayBomIn, setVanMayBomIn] = useState(false);
   const [vanMayBomOut, setVanMayBomOut] = useState(false);
 
   const publish = (topic, mess) => {
-    message = new Paho.MQTT.Message(JSON.stringify(mess));
+    var message = new Paho.MQTT.Message(JSON.stringify(mess));
     message.destinationName = `/bkiot/piquihac/${topic}`;
     client.send(message);
   };
@@ -70,16 +72,26 @@ const ControlDashboard = () => {
     publish("waterValve1", mess);
   };
 
+  const alert = (info) =>
+    Alert.alert("Thông Báo", info, [
+      { text: "OK", onPress: () => console.log("OK Pressed") },
+    ]);
+
   const setTP = () => {
     const mess = {
       valve1: 0,
-      v1: Number(inputVanThungPhan1),
+      vIn1: Number(inputVanThungPhan1),
       valve2: 0,
-      v2: Number(inputVanThungPhan2),
+      vIn2: Number(inputVanThungPhan2),
       valve3: 0,
-      v3: Number(inputVanThungPhan3),
+      vIn3: Number(inputVanThungPhan3),
     };
     publish("ferValve1", mess);
+    alert("Cài đặt thành công");
+  };
+
+  const cancelTP = () => {
+    alert("Hủy thành công");
   };
 
   function onConnect() {
@@ -100,18 +112,31 @@ const ControlDashboard = () => {
 
   function onMessageArrived(message) {
     const payload = JSON.parse(message.payloadString);
-    console.log("payload: ", payload);
-
+    var x = 0;
     if (message.destinationName === "/bkiot/piquihac/waterValve2") {
-      payload.valve4 === 1 ? setVanOngNuoc1(true) : setVanOngNuoc1(false);
-      payload.valve5 === 1 ? setVanOngNuoc2(true) : setVanOngNuoc2(false);
-      payload.valve6 === 1 ? setVanOngNuoc3(true) : setVanOngNuoc3(false);
-      payload.pumpIn === 1 ? setVanMayBomIn(true) : setVanMayBomIn(false);
-      payload.pumpOut === 1 ? setVanMayBomOut(true) : setVanMayBomOut(false);
+      // payload.valve4 === 1 ? setVanOngNuoc1(true) : setVanOngNuoc1(false);
+      // payload.valve5 === 1 ? setVanOngNuoc2(true) : setVanOngNuoc2(false);
+      // payload.valve6 === 1 ? setVanOngNuoc3(true) : setVanOngNuoc3(false);
+      // payload.pumpIn === 1 ? setVanMayBomIn(true) : setVanMayBomIn(false);
+      // payload.pumpOut === 1 ? setVanMayBomOut(true) : setVanMayBomOut(false);
+      setVDrum(payload.vDrum);
     } else if (message.destinationName === "/bkiot/piquihac/ferValve2") {
-      payload.valve1 === 1 ? setVanThungPhan1(true) : setVanThungPhan1(false);
-      payload.valve2 === 1 ? setVanThungPhan2(true) : setVanThungPhan2(false);
-      payload.valve3 === 1 ? setVanThungPhan3(true) : setVanThungPhan3(false);
+      payload.valve1 === 1
+        ? setVanThungPhan1(true)
+        : payload.valve1 === 0
+        ? setVanThungPhan1(false)
+        : (x = 1);
+      payload.valve2 === 1
+        ? setVanThungPhan2(true)
+        : payload.valve2 === 0
+        ? setVanThungPhan2(false)
+        : (x = 1);
+      payload.valve3 === 1
+        ? setVanThungPhan3(true)
+        : payload.valve2 === 0
+        ? setVanThungPhan3(false)
+        : (x = 1);
+      setTheTichTP({ tp1: payload.v1, tp2: payload.v2, tp3: payload.v3 });
     }
   }
 
@@ -129,7 +154,7 @@ const ControlDashboard = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <ThungPhi />
+      <ThungPhi thetich={vDrum} />
       <View style={styles.frameMayBom}>
         <MayBom
           state={vanMayBomIn}
@@ -175,18 +200,21 @@ const ControlDashboard = () => {
         <VanThungPhan
           name={"Thùng Phân 1"}
           state={vanThungPhan1}
+          thetich={thetichTP.tp1}
           onChangeText={setInputVanThungPhan1}
           value={inputVanThungPhan1}
         />
         <VanThungPhan
           name={"Thùng Phân 2"}
           state={vanThungPhan2}
+          thetich={thetichTP.tp2}
           onChangeText={setInputVanThungPhan2}
           value={inputVanThungPhan2}
         />
         <VanThungPhan
           name={"Thùng Phân 3"}
           state={vanThungPhan3}
+          thetich={thetichTP.tp3}
           onChangeText={setInputVanThungPhan3}
           value={inputVanThungPhan3}
         />
@@ -196,7 +224,7 @@ const ControlDashboard = () => {
               style={styles.button}
               title="Hủy Bỏ"
               color="#ccc"
-              ///onPress={handleTP}
+              onPress={cancelTP}
             />
           </View>
           <Button

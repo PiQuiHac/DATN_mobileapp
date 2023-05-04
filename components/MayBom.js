@@ -7,6 +7,8 @@ const MayBom = (props) => {
         <Image source={require("../assets/pump.png")} style={styles.iconPump} />
         <Switch
           style={styles.switch}
+          trackColor={{ false: "#767577", true: "#B8F2FF" }}
+          thumbColor={props.state ? "#58CCED" : "#f4f3f4"}
           onChange={props.onChange}
           value={props.state}
         />

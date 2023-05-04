@@ -12,7 +12,7 @@ const VanThungPhan = (props) => {
         ></MaterialCommunityIcons>
         <View>
           <Text style={styles.infoName}>{props.name}</Text>
-          <Text style={styles.infoV}> 500 ml</Text>
+          <Text style={styles.infoV}> {props.thetich} ml</Text>
         </View>
       </View>
       <TextInput

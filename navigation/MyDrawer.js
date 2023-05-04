@@ -17,8 +17,21 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 
 import ControlDashboard from "../screens/ControlDashboard";
 import ViewDashboard from "../screens/ViewDashboard";
+import { useNavigation } from "@react-navigation/native";
+import { auth } from "../firebase";
 
 const CustomDrawerContent = (props) => {
+  const navigation = useNavigation();
+
+  const handleSignOut = () => {
+    auth
+      .signOut()
+      .then(() => {
+        navigation.replace("Login");
+      })
+      .catch((error) => alert(error.message));
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <DrawerContentScrollView {...props}>
@@ -74,7 +87,7 @@ const MyDrawer = () => {
         }}
       />
       <Drawer.Screen
-        name="Theo Dõi Cảm Biến"
+        name="Theo Dõi Cây Trồng"
         component={ViewDashboard}
         options={{
           drawerIcon: ({ color }) => (

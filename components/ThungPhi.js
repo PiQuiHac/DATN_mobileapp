@@ -1,14 +1,9 @@
 import { Text, View, StyleSheet, Image, Switch } from "react-native";
-import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
-const ThungPhi = () => {
+const ThungPhi = (props) => {
   return (
     <View style={styles.box}>
-      {/* <Image
-        source={require("../assets/drum-water.png")}
-        style={styles.iconDrum}
-      /> */}
       <View style={styles.frameIcon}>
         <Ionicons
           name="water"
@@ -18,7 +13,7 @@ const ThungPhi = () => {
         ></Ionicons>
       </View>
       <View style={styles.frameText}>
-        <Text style={styles.v}>10.000 ml</Text>
+        <Text style={styles.v}>{props.thetich} ml</Text>
         <Text style={styles.name}>Thể tích nước còn lại trong thùng phuy</Text>
       </View>
     </View>
