@@ -15,7 +15,9 @@ const ChatBot = () => {
   const API_ENDPOINT =
     "https://api.openai.com/v1/engines/text-davinci-003/completions";
 
-  const API_KEY = "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";
+  const API_KEY = "";
+
+  // const API_KEY = "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";
 
   const config = {
     headers: {

@@ -39,9 +39,9 @@ const ViewDashboard = () => {
   const API_ENDPOINT =
     "https://api.openai.com/v1/engines/text-davinci-003/completions";
 
-  const API_KEY = "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";
+  const API_KEY = "";
 
-  //const API_KEY = "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";
+  // const API_KEY = "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";
 
   const config = {
     headers: {
