@@ -29,14 +29,19 @@ const ControlDashboard = () => {
   const [vanThungPhan1, setVanThungPhan1] = useState(false);
   const [vanThungPhan2, setVanThungPhan2] = useState(false);
   const [vanThungPhan3, setVanThungPhan3] = useState(false);
-  const [inputVanThungPhan1, setInputVanThungPhan1] = useState(0);
-  const [inputVanThungPhan2, setInputVanThungPhan2] = useState(0);
-  const [inputVanThungPhan3, setInputVanThungPhan3] = useState(0);
+  const [inputVanThungPhan1, setInputVanThungPhan1] = useState("0");
+  const [inputVanThungPhan2, setInputVanThungPhan2] = useState("0");
+  const [inputVanThungPhan3, setInputVanThungPhan3] = useState("0");
   const [thetichTP, setTheTichTP] = useState({ tp1: 0, tp2: 0, tp3: 0 });
-  const [vDrum, setVDrum] = useState(0);
+  const [vDrum, setVDrum] = useState("0");
 
   const [vanMayBomIn, setVanMayBomIn] = useState(false);
   const [vanMayBomOut, setVanMayBomOut] = useState(false);
+
+  const alert = (info) =>
+    Alert.alert("Thông Báo", info, [
+      { text: "OK", onPress: () => console.log("OK Pressed") },
+    ]);
 
   const publish = (topic, mess) => {
     var message = new Paho.MQTT.Message(JSON.stringify(mess));
@@ -59,8 +64,16 @@ const ControlDashboard = () => {
       setVanMayBomIn(!vanMayBomIn);
       setted = 4;
     } else {
-      setVanMayBomOut(!vanMayBomOut);
-      setted = 5;
+      if (
+        vanOngNuoc1 === true ||
+        vanOngNuoc2 === true ||
+        vanOngNuoc3 === true
+      ) {
+        setVanMayBomOut(!vanMayBomOut);
+        setted = 5;
+      } else {
+        alert("Vui lòng mở một van ống nước bất kỳ!");
+      }
     }
     const mess = {
       valve4: setted === 1 ? (!vanOngNuoc1 ? 1 : 0) : vanOngNuoc1 ? 1 : 0,
@@ -71,11 +84,6 @@ const ControlDashboard = () => {
     };
     publish("waterValve1", mess);
   };
-
-  const alert = (info) =>
-    Alert.alert("Thông Báo", info, [
-      { text: "OK", onPress: () => console.log("OK Pressed") },
-    ]);
 
   const setTP = () => {
     const mess = {
@@ -151,7 +159,6 @@ const ControlDashboard = () => {
       password: "vatserver123",
     });
   }, []);
-
   return (
     <ScrollView style={styles.container}>
       <ThungPhi thetich={vDrum} />

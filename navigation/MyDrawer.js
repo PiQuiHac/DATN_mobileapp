@@ -17,6 +17,8 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 
 import ControlDashboard from "../screens/ControlDashboard";
 import ViewDashboard from "../screens/ViewDashboard";
+import ChatBot from "../screens/ChatBot";
+
 import { useNavigation } from "@react-navigation/native";
 import { auth } from "../firebase";
 
@@ -92,6 +94,15 @@ const MyDrawer = () => {
         options={{
           drawerIcon: ({ color }) => (
             <AntDesign name="barschart" size={22} color={color}></AntDesign>
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="Tư Vấn Cây Trồng"
+        component={ChatBot}
+        options={{
+          drawerIcon: ({ color }) => (
+            <AntDesign name="message1" size={22} color={color}></AntDesign>
           ),
         }}
       />
