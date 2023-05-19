@@ -12,11 +12,11 @@ export const firebaseConfig = {
   projectId: "thesis-login-1665a",
   storageBucket: "thesis-login-1665a.appspot.com",
   messagingSenderId: "610237096038",
-  appId: "1:610237096038:web:eb9e16e5172f8f73fe4da7"
+  appId: "1:610237096038:web:eb9e16e5172f8f73fe4da7",
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app)
+const auth = getAuth(app);
 
-export {auth};
+export { app, auth };

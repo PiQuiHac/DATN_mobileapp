@@ -16,8 +16,11 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import loginBackground from "../assets/background2.png";
 import logoBK from "../assets/LogoBK.png";
 import { useNavigation } from "@react-navigation/core";
-import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase-config";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 
 //this is for test user
 export default function Login() {
@@ -30,6 +33,8 @@ export default function Login() {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
 
   const navigation = useNavigation();
+
+  const auth = getAuth();
 
   //   useEffect(() => {
   //     const unsubscribe = auth.onAuthStateChanged(auth, (user) => {
@@ -66,9 +71,14 @@ export default function Login() {
         .then((userCredentials) => {
           const user = userCredentials.user;
           console.log("Logged in with:", user.email);
+          navigation.navigate("MyDrawer");
         })
-        .catch((error) => console.log(error.message));
-      return true;
+        .catch((error) => {
+          if (error.code == "auth/user-not-found")
+            return Alert.alert("Không tìm thấy email");
+          else if (error.code == "auth/wrong-password")
+            return Alert.alert("Mật khẩu sai");
+        });
     }
   };
 
@@ -129,9 +139,10 @@ export default function Login() {
                 <SubmitButton
                   title={"Đăng Nhập"}
                   action={() => {
-                    if (handleLogin(email, password)) {
-                      navigation.navigate("MyDrawer");
-                    }
+                    // if (handleLogin(email, password)) {
+                    //   navigation.navigate("MyDrawer");
+                    // }
+                    handleLogin(email, password);
                   }}
                 />
                 <View style={styles.register}>

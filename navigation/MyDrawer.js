@@ -20,11 +20,12 @@ import ViewDashboard from "../screens/ViewDashboard";
 import ChatBot from "../screens/ChatBot";
 
 import { useNavigation } from "@react-navigation/core";
-import { auth } from "../firebase-config";
-import { signOut } from "@firebase/auth";
+import { getAuth, signOut } from "@firebase/auth";
 
 const CustomDrawerContent = (props) => {
   const navigation = useNavigation();
+
+  const auth = getAuth();
 
   const handleSignOut = () => {
     signOut(auth)

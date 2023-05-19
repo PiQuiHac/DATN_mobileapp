@@ -16,8 +16,7 @@ import loginBackground from "../assets/background2.png";
 import logoBK from "../assets/LogoBK.png";
 import SubmitButton from "../components/SubmitButton";
 import { useNavigation } from "@react-navigation/native";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import auth from "../firebase-config";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -28,6 +27,8 @@ export default function Register() {
   const [showConfirm, setShowConfirm] = useState(true);
 
   const navigation = useNavigation();
+
+  const auth = getAuth();
 
   // check name,user name
   //check email format
@@ -51,16 +52,18 @@ export default function Register() {
 
   const handleSignUp = (name, email, password, confirmPassword) => {
     if (handleInput(name, email, password, confirmPassword)) {
-      console.log('tai khoan', email);
+      console.log("tai khoan", email);
       createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
           const user = userCredential.user;
           console.log("New Account with:", user.email);
+          navigation.navigate("MyDrawer");
         })
-        .catch((error) => console.log(error.code));
+        .catch((error) => {
+          if (error.code == "auth/email-already-in-use")
+            return Alert.alert("Email này đã được sử dụng");
+        });
     }
-      
-    return true;
   };
 
   return (
@@ -143,9 +146,10 @@ export default function Register() {
                 <SubmitButton
                   title={"Đăng Ký"}
                   action={() => {
-                    if (handleSignUp(name, email, password, confirmPassword)) {
-                      navigation.navigate("MyDrawer");
-                    }
+                    // if (handleSignUp(name, email, password, confirmPassword)) {
+                    //   navigation.navigate("MyDrawer");
+                    // }
+                    handleSignUp(name, email, password, confirmPassword);
                   }}
                   style={{ backgroundColor: "#989898" }}
                 />
