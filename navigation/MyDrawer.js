@@ -19,19 +19,20 @@ import ControlDashboard from "../screens/ControlDashboard";
 import ViewDashboard from "../screens/ViewDashboard";
 import ChatBot from "../screens/ChatBot";
 
-import { useNavigation } from "@react-navigation/native";
-import { auth } from "../firebase";
+import { useNavigation } from "@react-navigation/core";
+import { auth } from "../firebase-config";
+import { signOut } from "@firebase/auth";
 
 const CustomDrawerContent = (props) => {
   const navigation = useNavigation();
 
   const handleSignOut = () => {
-    auth
-      .signOut()
+    signOut(auth)
       .then(() => {
+        console.log("sign out");
         navigation.replace("Login");
       })
-      .catch((error) => alert(error.message));
+      .catch((error) => console.log(error.message));
   };
 
   return (
@@ -52,7 +53,11 @@ const CustomDrawerContent = (props) => {
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
       <View style={styles.footer}>
-        <TouchableOpacity onPress={() => {}}>
+        <TouchableOpacity
+          onPress={() => {
+            handleSignOut();
+          }}
+        >
           <View
             style={{
               flexDirection: "row",

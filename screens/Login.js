@@ -15,9 +15,9 @@ import SubmitButton from "../components/SubmitButton";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import loginBackground from "../assets/background2.png";
 import logoBK from "../assets/LogoBK.png";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/core";
 import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
-import auth from "../firebase";
+import { auth } from "../firebase-config";
 
 //this is for test user
 export default function Login() {
@@ -32,18 +32,20 @@ export default function Login() {
   const navigation = useNavigation();
 
   //   useEffect(() => {
-  //     onAuthStateChanged(auth, (user)=> {
+  //     const unsubscribe = auth.onAuthStateChanged(auth, (user) => {
   //         if (user) {
   //             navigator.navigate("MyDrawer");
   //         }
   //     })
+  //     return unsubscribe
   // }, [])
 
   /** This is for handle input when login
    * check length, empty email or password,
    */
   const handleInput = (email, password) => {
-    if (!email || !password) return Alert.alert("Empty");
+    if (!email || !password)
+      return Alert.alert("Vui lòng nhập đủ Email và Mật khẩu");
     else if (
       !email
         .toLocaleLowerCase()
@@ -51,20 +53,21 @@ export default function Login() {
           /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
         )
     )
-      return Alert.alert("Invalid Email, please enter correct syntax email");
-    else if (password.length < 6) return Alert.alert("Short Password");
+      return Alert.alert("Email không hợp lệ");
+    else if (password.length < 6) return Alert.alert("Mật khẩu ngắn");
 
     return true;
   };
 
-  const handleLogin = () => {
+  const handleLogin = (email, password) => {
     if (handleInput(email, password)) {
-      signInWithEmailAndPassword(email, password)
+      console.log("dang nhap ne", email);
+      signInWithEmailAndPassword(auth, email, password)
         .then((userCredentials) => {
           const user = userCredentials.user;
           console.log("Logged in with:", user.email);
         })
-        .catch((error) => alert(error.message));
+        .catch((error) => console.log(error.message));
       return true;
     }
   };
@@ -126,7 +129,7 @@ export default function Login() {
                 <SubmitButton
                   title={"Đăng Nhập"}
                   action={() => {
-                    if (handleInput(email, password)) {
+                    if (handleLogin(email, password)) {
                       navigation.navigate("MyDrawer");
                     }
                   }}

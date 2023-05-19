@@ -17,7 +17,7 @@ import logoBK from "../assets/LogoBK.png";
 import SubmitButton from "../components/SubmitButton";
 import { useNavigation } from "@react-navigation/native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import auth from "../firebase";
+import auth from "../firebase-config";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -34,30 +34,33 @@ export default function Register() {
   //check password and confirm
   function handleInput(name, email, password, confirmPassword) {
     if (!name || !email || !password || !confirmPassword)
-      return Alert.alert("Please fill out ");
-    if (name.length < 3) return Alert.alert("Short Name");
-    else if (
+      return Alert.alert("Vui lòng nhập đầy đủ thông tin");
+    if (
       !email
         .toLocaleLowerCase()
         .match(
           /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
         )
     )
-      return Alert.alert("Invalid email");
-    else if (password.length < 6) return Alert.alert("Short password");
+      return Alert.alert("Email không hợp lệ");
+    else if (password.length < 6) return Alert.alert("Mật khẩu ngắn");
     else if (password != confirmPassword)
-      return Alert.alert("Password not matched");
+      return Alert.alert("Mật khẩu không khớp");
     return true;
   }
 
-  const handleSignUp = () => {
-    if (handleInput(name, email, password, confirmPassword))
+  const handleSignUp = (name, email, password, confirmPassword) => {
+    if (handleInput(name, email, password, confirmPassword)) {
+      console.log('tai khoan', email);
       createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredentials) => {
-          const user = userCredentials.user;
+        .then((userCredential) => {
+          const user = userCredential.user;
           console.log("New Account with:", user.email);
         })
-        .catch((error) => alert(error.code));
+        .catch((error) => console.log(error.code));
+    }
+      
+    return true;
   };
 
   return (
@@ -139,7 +142,11 @@ export default function Register() {
               <View style={styles.register_button}>
                 <SubmitButton
                   title={"Đăng Ký"}
-                  action={handleSignUp}
+                  action={() => {
+                    if (handleSignUp(name, email, password, confirmPassword)) {
+                      navigation.navigate("MyDrawer");
+                    }
+                  }}
                   style={{ backgroundColor: "#989898" }}
                 />
                 <View style={styles.align}>
@@ -151,7 +158,7 @@ export default function Register() {
                       navigation.navigate("Login");
                     }}
                   >
-                    <Text style={styles.login_now}>{"Đăng nhập"}</Text>
+                    <Text style={styles.login_now}>{"Đăng nhập ngay"}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
