@@ -21,6 +21,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
 } from "firebase/auth";
+import { firebaseConfig } from "../firebase-config";
 
 //this is for test user
 export default function Login() {
@@ -36,14 +37,14 @@ export default function Login() {
 
   const auth = getAuth();
 
-  //   useEffect(() => {
-  //     const unsubscribe = auth.onAuthStateChanged(auth, (user) => {
-  //         if (user) {
-  //             navigator.navigate("MyDrawer");
-  //         }
-  //     })
-  //     return unsubscribe
-  // }, [])
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+          navigation.navigate("MyDrawer");
+        }
+    })
+    return unsubscribe
+}, [])
 
   /** This is for handle input when login
    * check length, empty email or password,
